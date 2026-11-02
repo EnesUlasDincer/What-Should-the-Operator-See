@@ -1,0 +1,9 @@
+torch
+ultralytics
+numpy
+opencv-python
+pyzmq
+scipy
+open3d
+pyrealsense2
+numba

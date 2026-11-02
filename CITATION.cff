@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+message: "If you use this system, please cite the paper listed below."
+title: "What Should the Operator See? Evaluating Visualization Modalities for XR Robot Teleoperation"
+type: software
+repository-code: "https://github.com/EnesUlasDincer/What-Should-the-Operator-See"
+url: "https://enesulasdincer.github.io/What-Should-the-Operator-See/"
+authors:
+  - family-names: Dincer
+    given-names: Enes Ulas
+  - family-names: Zaremski
+    given-names: Manuel
+  - family-names: Nick
+    given-names: Alexandra
+  - family-names: Wucher
+    given-names: Elias
+  - family-names: Deml
+    given-names: Barbara
+  - family-names: Neumann
+    given-names: Gerhard
+preferred-citation:
+  type: article
+  title: "What Should the Operator See? Evaluating Visualization Modalities for XR Robot Teleoperation"
+  journal: "IEEE Robotics and Automation Letters"
+  year: 2026
+  notes: "Accepted for publication; final publication details pending."
+  authors:
+    - family-names: Dincer
+      given-names: Enes Ulas
+    - family-names: Zaremski
+      given-names: Manuel
+    - family-names: Nick
+      given-names: Alexandra
+    - family-names: Wucher
+      given-names: Elias
+    - family-names: Deml
+      given-names: Barbara
+    - family-names: Neumann
+      given-names: Gerhard

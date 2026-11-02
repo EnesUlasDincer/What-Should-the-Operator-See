@@ -1,0 +1,2165 @@
+---
+title: "Robot teleoperation study - subjective and participant data"
+output: html_notebook
+---
+
+Status: 8.11.2025
+
+# Preparations
+
+## preparation in Excel:
+saved in raw.xlsx
+0. Select completed datasets (remove test runs and interrupted runs)
+  - incomplete ids: 1, 6, 8, 9, 10, 13, 18, 22, 28, 35
+  - Remove group times (still include total time) 
+  ???
+  - remove test data (before 16.10.) => idLS 2, 3, 4, 5
+  ..
+  => 29 available Datasets
+1. Sort data according to the condition order
+1.1. Sorting limesurvey data:
+- "RGBD" = "#004488",
+- "PC"   =  "#DDAA33",
+- "RGBD + PC" = "#006400",
+- "OT"        = "#BB5566"
+
+2. Merge datasets:
+- Limesurvey demographics & subjective evaluations
+- Performance data
+**done**
+**todo** Schuhfried 3D mental rotation test
+
+Mergining is based on the random ID numbers 
+
+____________________
+
+Questions
+**Todo**: ordering performance?!
+Check: ID Condition & Task order mit unserer Randomisierungsliste
+Wieso manche condition order 3 mal und andere nur einmal? sehr merkwürdig
+
+
+
+_________________________
+
+## package loading & import dataset
+Loading relevant packages for analysis, plots and comfortable analysis
+Color setting for the visualization conditions
+```{r}
+# packages / imports
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(psych)
+library(readxl)
+library(ez)
+
+library(tidyverse)
+library(patchwork)
+library(ggpubr)
+library(rstatix)
+
+## RGBD, PC = Point cloud, OT = open television
+
+colors_iam <- c(
+    "RGBs"= "#1F77B4",     # blue
+    "OT"= "#FF7F0E",       # orange
+    "PC"= "#2CA02C",       # green
+    "PC+RGB"= "#D62728",   # red
+    "PC_RGB" = "#D62728"
+)
+
+```
+
+
+
+Import of the .xlxs raw dataset => Loading Dataset
+```{r}
+
+rawDataAN <- read_excel("rawDataAN.xlsx")
+View(rawDataAN)
+```
+
+```{r}
+
+data <- rawDataAN
+
+# remove []
+colnames(data) <- gsub("\\[|\\]", "", colnames(data)) 
+
+```
+
+
+
+Import data set
+```{r}
+rawDataANBinaryPerformance <- read_excel("rawDataANBinaryPerformance.xlsx")
+View(rawDataANBinaryPerformance)
+```
+
+```{r}
+dataPer <- rawDataANBinaryPerformance
+dim(dataPer)
+
+colnames(dataPer) <- gsub("\\[|\\]", "", colnames(dataPer)) 
+```
+
+
+
+# Sample description
+
+Descriptives for gender[absolute frequency and percentage], age [mean, sd, range], highest level of education [absolute frequency], specialization [open answers]
+
+Gender:
+```{r}
+# absolute frequncies for gender
+# print(table(data$gender))
+
+data %>%
+  group_by(gender) %>%
+  summarise(n = n()) %>%
+  mutate(freq = n / sum(n))
+```
+
+Age:
+```{r}
+# mean, sd, range for age
+describe(data$age)
+```
+
+Levels of education:
+
+```{r}
+# adding labels
+data$educationL <- ordered(data$education,
+  levels = c("e1", "e2", "e3", "e4", "e5", "e6"),
+  labels = c("No formal education", "Vocational qualification", "Secondary school", 
+             "Bachelor’s", "Master’s", "Doctorate/PhD"))
+
+
+# analysis
+data %>%
+  group_by(educationL) %>%
+  summarise(n = n()) %>%
+  mutate(freq = n / sum(n))
+```
+
+
+Specializations/area of interests:
+
+```{r}
+print(table(data$specialization))
+```
+This list is just used to described the sample. E.g., quite technical, computer scientists and engineers...
+
+
+
+
+# Prior experience
+Self reported prior experience in VR, Gaming and especially in simulator games - analysed as individual items
+Question:
+"Please tell us your prior experience with gaming and VR by answering the following questions."
+Answer format for frequencies:
+1 - never, 2 - less than 1x per month, 3 - 1x per month, 4 - 2-3x per month
+5 - 1x per week, 6 - 2-3x per week, 7 - daily
+
+Analysis: Likert scale, interpreted as orderd (not equal distances)
+
+Adding labels to the 3 variables (L in the end of the variable name is used to illustrate that)
+```{r}
+# adding labels
+data$experienceVRL <- ordered(data$priorExperienceVR,
+  levels = c(1, 2, 3, 4, 5, 6, 7),
+  labels = c("never", "less than 1x per month", "1x per month", "2-3x per month",
+             "1x per week", "2-3x per week", "daily"))
+
+
+data$experienceGameL <- ordered(data$priorExperienceGame,
+  levels = c(1, 2, 3, 4, 5, 6, 7),
+  labels = c("never", "less than 1x per month", "1x per month", "2-3x per month",
+             "1x per week", "2-3x per week", "daily"))
+
+data$experienceSimL <- ordered(data$priorExperienceGsim,
+  levels = c(1, 2, 3, 4, 5, 6, 7),
+  labels = c("never", "less than 1x per month", "1x per month", "2-3x per month",
+             "1x per week", "2-3x per week", "daily"))
+
+```
+
+
+Item VR: "Do you already have experience with VR? For example, in another experiment or in VR gaming?"
+```{r}
+data %>%
+  group_by(experienceVRL) %>%
+  summarise(n = n()) %>%
+  mutate(freq = n / sum(n))
+```
+
+
+```{r}
+describe(data$priorExperienceVR)
+```
+
+
+
+Item gaming: "Do you play any kind of video games (computer, console, smartphone...)?"
+```{r}
+data %>%
+  group_by(experienceGameL) %>%
+  summarise(n = n()) %>%
+  mutate(freq = n / sum(n))
+```
+
+```{r}
+describe(data$priorExperienceGame)
+```
+
+
+Item simulator games: "Do you play any kind of simulation games (computer, console, smartphone...)?"
+```{r}
+data %>%
+  group_by(experienceSimL) %>%
+  summarise(n = n()) %>%
+  mutate(freq = n / sum(n))
+```
+
+
+
+```{r}
+describe(data$priorExperienceGsim)
+```
+
+
+
+
+# Individual traits or tendencies
+Evaluation of ATI (affinity for technology interaction) and immersive tendency
+
+
+## ATI evaluation
+
+Scale information for participants:
+"In the following questionnaire, we will ask you about your interaction with technical systems. The term “technical systems” refers to apps and other software applications, as well as entire digital devices (e.g., mobile phone, computer, TV, car navigation). Please indicate the degree to which you agree/disagree with the following statements."
+
+Answer format: 1 - 6; completely disagree, largely disagree, slightly disagree, slightly agree, largely agree, completely agree
+
+
+1. renaming columns - indication of items that need to be reversed (i3, i6, i8)
+```{r}
+# rename column names
+data <- data %>%
+  rename(
+    # situation 1
+    ATI1 = ATIATI1,
+    ATI2 = ATIATI2,
+    ATI3r = ATIATI3,
+    ATI4 = ATIATI4,
+    ATI5 = ATIATI5,
+    ATI6r = ATIATI6,
+    ATI7 = ATIATI7,
+    ATI8r = ATIATI8,
+    ATI9 = ATIATI9,
+  )
+```
+
+2. recoding of the 3 items, save as new variables
+```{r}
+data <- data %>%
+  mutate(
+    ATI3 = recode(ATI3r, `6` = 1, `5` = 2, `4` = 3, `3` = 4, `2` = 5, `1` = 6),
+    ATI6 = recode(ATI6r, `6` = 1, `5` = 2, `4` = 3, `3` = 4, `2` = 5, `1` = 6),
+    ATI8 = recode(ATI8r, `6` = 1, `5` = 2, `4` = 3, `3` = 4, `2` = 5, `1` = 6)
+  )
+
+```
+
+3. check internal consistency (reliability of the scale) - cronbachs alpha 
+
+https://bjoernwalther.com/cronbachs-alpha-in-r-berechnen/
+
+detailed analysis:
+```{r}
+alpha(data[, c("ATI1", "ATI2", "ATI3", "ATI4", "ATI5", "ATI6",  
+               "ATI7",  "ATI8",  "ATI9")], check.keys =TRUE)
+```
+
+single value:
+```{r}
+alpha(data[, c("ATI1", "ATI2", "ATI3", "ATI4", "ATI5", "ATI6",  
+               "ATI7",  "ATI8",  "ATI9")])$total$raw_alpha
+```
+
+4. rowwise mean to generate the ATI scor for each participant 
+Result of 3. should be >0.65 / > 0.7
+```{r}
+data <- data %>%
+  mutate(ATI = rowMeans(select(., ATI1, ATI2, ATI3, ATI4, ATI5, ATI6, 
+                                          ATI7, ATI8, ATI9, ), na.rm = TRUE))
+```
+
+
+5. descriptive analysis of ATI scores
+```{r}
+describe(data$ATI)
+```
+
+6. Visual illustration with a boxplot
+Notch for internal distribution illustration; could be deleted for more classical illustration
+```{r}
+boxplot(data$ATI, notch=FALSE,
+        main="Affinity for technology interaction",
+        xlab="ATI for all participants", 
+        ylab="Response means 1 (low) - 6 (high)",
+        ylim = c(1, 6))
+```
+
+
+
+NOT INCLUDED IN RAL Paper
+## Immersive tendency evaluation
+Subscales: 
+Focus: Items 1 + 2 + 3 + 8 + 13
+Implication: Items 4 + 5 + 10 + 12 + 18
+Emotions: Items 11 + 15 + 16 + 17
+Game: items 6 + 9 + 14
+
+Answer scale: 1 - low/never to 7 - high/very often
+
+
+1. renaming variables (no recoding required)
+Caution: the original names come from different pages in limesurvey => renaming for clearer understanding
+```{r}
+data <- data %>%
+  rename(
+    it1 = iT1i1, it2 = iT1i2, 
+    it3 = iT2i3, 
+    it4 = iT3i4, it5 = iT3i5, it6 = iT3i6, 
+    it7 = iT4i7,
+    it8 = iT5i8, 
+    it9 = iT6i9, it10 = iT6i10, it11 = iT6i11, it12 = iT6i12,   
+    it13 = iT7i13,
+    it14 = iT8i14, it15 = iT8i15, it16 = iT8i16, it17 = iT8i17, it18 = iT8i18,
+  )
+```
+
+
+2. internal consistency for the subscales & rowwise mean computation
+Focus:
+```{r}
+alpha(data[, c("it1", "it2", "it3", "it8", "it13")], check.keys =TRUE)
+```
+c alpha = .4436 => very low
+
+```{r}
+data <- data %>%
+  mutate(itFocus = rowMeans(select(., it1, it2, it3, it8, it13), na.rm = TRUE))
+```
+
+
+Implication:
+```{r}
+alpha(data[, c("it4", "it5", "it10", "it12", "it18")], check.keys =TRUE)
+```
+c alpha: .7076
+
+
+```{r}
+data <- data %>%
+  mutate(itImplication = rowMeans(select(., it4, it5, it10, it12, it18), na.rm = TRUE))
+```
+
+
+
+Emotion:
+```{r}
+alpha(data[, c("it11", "it15", "it16", "it17")], check.keys =TRUE)
+```
+c alpha .7065
+
+```{r}
+data <- data %>%
+  mutate(itEmotion = rowMeans(select(., it11, it15, it16, it17), na.rm = TRUE))
+```
+
+
+
+Game:
+```{r}
+alpha(data[, c("it6", "it9", "it14")], check.keys =TRUE)
+```
+c alpha = .386 => very low
+
+
+```{r}
+data <- data %>%
+  mutate(itGame = rowMeans(select(., it6, it9, it14), na.rm = TRUE))
+```
+
+
+
+3. descriptive analysis of the subscale results
+
+
+Physically fit: item 7
+```{r}
+describe(data$it7)
+```
+
+
+
+```{r}
+describe(data$itFocus)
+describe(data$itImplication)
+describe(data$itEmotion)
+describe(data$itGame)
+
+```
+
+
+4. Illustrative boxplot 
+One plot for the 4 subscales and physical fit state (i7)
+
+Idea: add cronbachs alpga values to the description?
+```{r}
+boxplot(data$itFocus, data$itImplication, data$itEmotion, data$itGame, data$it7, notch=TRUE,
+        names = c("Focus (5 items)", "Implication (5 items)", "Emotion (4 items)", "Game (3 items)", "Physical state (1 item)"),
+        main = "Subscales of immersive tendency",
+        ylab = "Rowwise mean response 1 (low) to 7 (high)",
+        ylim = c(1, 7)
+        )
+```
+
+
+
+
+
+
+
+
+# Workload
+Evaluation individual per item (not as sum score(!))
+6 items for 4 conditions
+md: mental demand, pd: physical demand, td: temporal demand, per: performance, effort: effort, frust: frustration
+
+
+## Descriptive analysis
+Descriptive evaluation with values & boxplot
+inferential statistical analysis to compare the 4 conditions
+
+
+```{r}
+# NasaTLX1mD, NasaTLX1pD, NasaTLX1tD, NasaTLX1per, NasaTLX1effort, NasaTLX1frust
+describe(data$NasaTLX1mD)
+describe(data$NasaTLX2mD)
+describe(data$NasaTLX3mD)
+describe(data$NasaTLX4mD)
+```
+
+```{r}
+
+boxplot(data$NasaTLX1mD, data$NasaTLX2mD, data$NasaTLX3mD, data$NasaTLX4mD, # notch=TRUE,
+        names = c("RGBD", "PC", "RGBD + PC", "OT"),
+        col = colors_iam,
+        main = "Mental demand across the 4 visualization conditions",
+        ylab = "Responses 1 (low) to 21 (high)",
+        ylim = c(1, 21)
+        )
+```
+
+
+
+physical demand
+```{r}
+describe(data$NasaTLX1pD)
+describe(data$NasaTLX2pD)
+describe(data$NasaTLX3pD)
+describe(data$NasaTLX4pD)
+```
+
+
+```{r}
+boxplot(data$NasaTLX1pD, data$NasaTLX2pD, data$NasaTLX3pD, data$NasaTLX4pD, # notch=TRUE,
+        names = c("RGBD", "PC", "RGBD + PC", "OT"),
+        col = colors_iam,
+        main = "Physical demand across the 4 visualization conditions",
+        ylab = "Responses 1 (low) to 21 (high)",
+        ylim = c(1, 21)
+        )
+```
+
+
+temporal demand
+```{r}
+describe(data$NasaTLX1tD)
+describe(data$NasaTLX2tD)
+describe(data$NasaTLX3tD)
+describe(data$NasaTLX4tD)
+```
+
+
+```{r}
+boxplot(data$NasaTLX1tD, data$NasaTLX2tD, data$NasaTLX3tD, data$NasaTLX4tD, # notch=TRUE,
+        names = c("RGBD", "PC", "RGBD + PC", "OT"),
+        col = colors_iam,
+        main = "Temporal demand across the 4 visualization conditions",
+        ylab = "Responses 1 (low) to 21 (high)",
+        ylim = c(1, 21)
+        )
+```
+
+
+
+performance
+```{r}
+describe(data$NasaTLX1per)
+describe(data$NasaTLX2per)
+describe(data$NasaTLX3per)
+describe(data$NasaTLX4per)
+```
+
+
+```{r}
+boxplot(data$NasaTLX1per, data$NasaTLX2per, data$NasaTLX3per, data$NasaTLX4per, # notch=TRUE,
+        names = c("RGBD", "PC", "RGBD + PC", "OT"),
+        col = colors_iam,
+        main = "Subjective performance across the 4 visualization conditions",
+        ylab = "Responses 1 (low) to 21 (high)",
+        ylim = c(1, 21)
+        )
+```
+
+
+
+effort
+```{r}
+describe(data$NasaTLX1effort)
+describe(data$NasaTLX2effort)
+describe(data$NasaTLX3effort)
+describe(data$NasaTLX4effort)
+```
+
+```{r}
+boxplot(data$NasaTLX1effort, data$NasaTLX2effort, data$NasaTLX3effort, data$NasaTLX4effort, # notch=TRUE,
+        names = c("RGBD", "PC", "RGBD + PC", "OT"),
+        col = colors_iam,
+        main = "Subjective effort across the 4 visualization conditions",
+        ylab = "Responses 1 (low) to 21 (high)",
+        ylim = c(1, 21)
+        )
+```
+
+
+frustration
+```{r}
+describe(data$NasaTLX1frust)
+describe(data$NasaTLX2frust)
+describe(data$NasaTLX3frust)
+describe(data$NasaTLX4frust)
+```
+
+
+```{r}
+boxplot(data$NasaTLX1frust, data$NasaTLX2frust, data$NasaTLX3frust, data$NasaTLX4frust, # notch=TRUE,
+        names = c("RGBD", "PC", "RGBD + PC", "OT"),
+        col = colors_iam,
+        main = "Subjective frsutration across the 4 visualization conditions",
+        ylab = "Responses 1 (low) to 21 (high)",
+        ylim = c(1, 21)
+        )
+```
+
+
+
+
+
+
+
+
+
+## Descriptive Plot
+
+
+```{r}
+
+par(mfrow=c(2,3))
+#text("Workload evaluation (NasaTLX)")
+boxplot(data$NasaTLX1mD, data$NasaTLX2mD, data$NasaTLX3mD, data$NasaTLX4mD, names = c("RGBD", "PC", "RGBD+PC", "OT"), col = colors_iam,
+        main = "Mental demand", ylab = "Responses 1 (low) to 21 (high)", ylim = c(1, 21)
+        )
+
+boxplot(data$NasaTLX1pD, data$NasaTLX2pD, data$NasaTLX3pD, data$NasaTLX4pD, names = c("RGBD", "PC", "RGBD+PC", "OT"), col = colors_iam,
+        main = "Physical demand", ylab = "Responses 1 (low) to 21 (high)", ylim = c(1, 21)
+        )
+
+boxplot(data$NasaTLX1tD, data$NasaTLX2tD, data$NasaTLX3tD, data$NasaTLX4tD, names = c("RGBD", "PC", "RGBD+PC", "OT"), col = colors_iam,
+        main = "Temporal demand", ylab = "Responses 1 (low) to 21 (high)", ylim = c(1, 21)
+        )
+
+boxplot(data$NasaTLX1per, data$NasaTLX2per, data$NasaTLX3per, data$NasaTLX4per, names = c("RGBD", "PC", "RGBD+PC", "OT"), col = colors_iam,
+        main = "Performance expectation", ylab = "Responses 1 (low) to 21 (high)", ylim = c(1, 21)
+        )
+
+boxplot(data$NasaTLX1effort, data$NasaTLX2effort, data$NasaTLX3effort, data$NasaTLX4effort, names = c("RGBD", "PC", "RGBD+PC", "OT"), col = colors_iam,
+        main = "Effort", ylab = "Responses 1 (low) to 21 (high)", ylim = c(1, 21)
+        )
+boxplot(data$NasaTLX1frust, data$NasaTLX2frust, data$NasaTLX3frust, data$NasaTLX4frust, names = c("RGBD", "PC", "RGBD+PC", "OT"),
+        col = colors_iam, main = "Frustration", ylab = "Responses 1 (low) to 21 (high)", ylim = c(1, 21)
+        )
+
+
+```
+
+
+```{r}
+#Long format
+tlx_long <- data %>%
+
+  select(starts_with("NasaTLX")) %>%
+
+  pivot_longer(
+    cols = everything(),
+    names_to   = c("Condition", "Dimension"),
+    names_pattern = "NasaTLX(\\d+)(.*)",
+    values_to  = "Score"
+  ) %>%
+  mutate(
+    Condition = recode(Condition,
+      `1` = "RGBs",
+      `2` = "PC",
+      `3` = "PC+RGB",
+      `4` = "OT"
+    ),
+    Condition = factor(Condition,
+      levels = c("RGBs", "PC", "PC+RGB", "OT")),
+    Dimension = recode(Dimension,
+      "mD"    = "Mental demand",
+      "pD"    = "Physical demand",
+      "tD"    = "Temporal demand",
+      "per"   = "Performance expectation",
+      "effort"= "Effort",
+      "frust" = "Frustration"
+    ),
+    # Reihenfolge der Facetten (optional)
+    Dimension = factor(Dimension,
+      levels = c("Mental demand", "Physical demand", "Temporal demand",
+                 "Performance expectation", "Effort", "Frustration"))
+  )
+```
+
+
+```{r}
+plot_tlx_dim <- function(dim_name) {
+  ggplot(
+    tlx_long %>% filter(Dimension == dim_name),
+    aes(x = Condition, y = Score, fill = Condition)
+  ) +
+    geom_boxplot(width = 0.6, outlier.size = 0.7, linewidth = 0.3) +
+    scale_y_continuous(limits = c(1, 21), breaks = seq(1, 21, by = 5)) +
+    scale_fill_manual(values = colors_iam) +
+    labs(
+      title = dim_name,
+      x = "Condition",                       # jede Kachel eigene Achsen
+      y = "Response (1 = low, 21 = high)"
+    ) +
+    theme_classic(base_size = 9) +
+    theme(
+      legend.position = "none",
+      plot.title      = element_text(face = "bold", hjust = 0.5)
+    )
+}
+
+```
+
+```{r}
+p1 <- plot_tlx_dim("Mental demand")
+p2 <- plot_tlx_dim("Physical demand")
+p3 <- plot_tlx_dim("Temporal demand")
+p4 <- plot_tlx_dim("Performance expectation")
+p5 <- plot_tlx_dim("Effort")
+p6 <- plot_tlx_dim("Frustration")
+
+# 2 Zeilen × 3 Spalten
+(p1 | p2 | p3) /
+(p4 | p5 | p6)
+```
+
+
+
+-------------------------------------------------------------------------
+
+## [OPTIONAL] workload evaluation per participant to see variance 
+Disregard the different conditions to see the overall distribution of load? - disregard consistency ?! => illustrate variance
+Only because I am curious; and to compare against the sample baseline??
+
+mental demand
+```{r}
+# NasaTLX1mD, NasaTLX1pD, NasaTLX1tD, NasaTLX1per, NasaTLX1effort, NasaTLX1frust
+data <- data %>%
+  mutate(mentalDemandOverAll = rowMeans(select(., NasaTLX1mD, NasaTLX2mD, NasaTLX3mD, NasaTLX4mD), na.rm = TRUE))
+
+describe(data$mentalDemandOverAll)
+
+```
+
+physical demand
+```{r}
+data <- data %>%
+  mutate(physicalDemandOverAll = rowMeans(select(., NasaTLX1pD, NasaTLX2pD, NasaTLX3pD, NasaTLX4pD), na.rm = TRUE))
+
+describe(data$physicalDemandOverAll)
+```
+
+temporal demand
+```{r}
+data <- data %>%
+  mutate(temporalDemandOverAll = rowMeans(select(., NasaTLX1tD, NasaTLX2tD, NasaTLX3tD, NasaTLX4tD), na.rm = TRUE))
+
+describe(data$temporalDemandOverAll)
+```
+
+
+performance
+```{r}
+data <- data %>%
+  mutate(performanceOverAll = rowMeans(select(., NasaTLX1per, NasaTLX2per, NasaTLX3per, NasaTLX4per), na.rm = TRUE))
+
+describe(data$performanceOverAll)
+```
+
+
+effort
+```{r}
+data <- data %>%
+  mutate(effortOverAll = rowMeans(select(., NasaTLX1effort, NasaTLX2effort, NasaTLX3effort, NasaTLX4effort), na.rm = TRUE))
+
+describe(data$effortOverAll)
+```
+
+
+frustration
+```{r}
+data <- data %>%
+  mutate(frustOverAll = rowMeans(select(., NasaTLX1frust, NasaTLX2frust, NasaTLX3frust, NasaTLX4frust), na.rm = TRUE))
+
+describe(data$frustOverAll)
+```
+
+
+```{r}
+boxplot(data$mentalDemandOverAll, data$physicalDemandOverAll, data$temporalDemandOverAll, data$performanceOverAll, 
+        data$effortOverAll, data$frustOverAll, 
+        names = c("mental demand", "physical demand", "temporal demand", "performance expectation", "effort", "frustration"),
+        # col = colors_iam,
+        main = "Individual varaince summarized across all 4 visualization conditions", ylab = "Responses 1 (low) to 21 (high)", ylim = c(1, 21)
+        )
+```
+
+
+-------------------------------------------------------------------------
+
+
+
+
+
+
+## significance testing NASA
+
+Testing if the differences between conditions are significant in each dimension
+Correction within each dimension and an overall correction due to multiple testing
+
+### 0. long format
+```{r}
+tlx_long <- data %>%
+  select(id, starts_with("NasaTLX")) %>%   
+  pivot_longer(
+    cols = starts_with("NasaTLX"),
+    names_to   = c("Condition", "Dimension"),
+    names_pattern = "NasaTLX(\\d+)(.*)",
+    values_to  = "Score"
+  ) %>%
+  mutate(
+    Condition = recode(Condition,
+      `1` = "RGBs",
+      `2` = "PC",
+      `3` = "PC+RGB",
+      `4` = "OT"
+    ),
+    Condition = factor(Condition, levels = c("RGBs", "PC", "PC+RGB", "OT")),
+    Dimension = recode(Dimension,
+      "mD"    = "Mental demand",
+      "pD"    = "Physical demand",
+      "tD"    = "Temporal demand",
+      "per"   = "Performance expectation",
+      "effort"= "Effort",
+      "frust" = "Frustration"
+    ),
+    Dimension = factor(
+      Dimension,
+      levels = c("Mental demand", "Physical demand", "Temporal demand",
+                 "Performance expectation", "Effort", "Frustration")
+    )
+  )
+```
+
+
+### 1. Testing if the variances are normally distributed
+
+Mental demand
+```{r}
+dim_name <- "Mental demand"
+
+mental_data <- tlx_long %>% filter(Dimension == dim_name)
+
+## 2.1 Normalität der Scores pro Condition
+mental_data %>%
+  group_by(Condition) %>%
+  shapiro_test(Score)
+# optional: QQ-Plots
+ggqqplot(mental_data, "Score", ggtheme = theme_bw()) + facet_wrap(~ Condition)
+
+```
+
+
+physical demand
+```{r}
+dim_name <- "Physical demand"
+
+nasa_data <- tlx_long %>% filter(Dimension == dim_name)
+
+## 2.1 Normalität der Scores pro Condition
+nasa_data %>%
+  group_by(Condition) %>%
+  shapiro_test(Score)
+# optional: QQ-Plots
+ggqqplot(nasa_data, "Score", ggtheme = theme_bw()) + facet_wrap(~ Condition)
+
+```
+
+temporal demand
+```{r}
+dim_name <- "Temporal demand"
+
+nasa_data <- tlx_long %>% filter(Dimension == dim_name)
+
+## 2.1 Normalität der Scores pro Condition
+nasa_data %>%
+  group_by(Condition) %>%
+  shapiro_test(Score)
+# optional: QQ-Plots
+ggqqplot(nasa_data, "Score", ggtheme = theme_bw()) + facet_wrap(~ Condition)
+
+```
+
+```{r}
+dim_name <- "Performance expectation"
+
+nasa_data <- tlx_long %>% filter(Dimension == dim_name)
+
+## 2.1 Normalität der Scores pro Condition
+nasa_data %>%
+  group_by(Condition) %>%
+  shapiro_test(Score)
+# optional: QQ-Plots
+ggqqplot(nasa_data, "Score", ggtheme = theme_bw()) + facet_wrap(~ Condition)
+
+```
+
+
+```{r}
+dim_name <- "Effort"
+
+nasa_data <- tlx_long %>% filter(Dimension == dim_name)
+
+## 2.1 Normalität der Scores pro Condition
+nasa_data %>%
+  group_by(Condition) %>%
+  shapiro_test(Score)
+# optional: QQ-Plots
+ggqqplot(nasa_data, "Score", ggtheme = theme_bw()) + facet_wrap(~ Condition)
+
+```
+
+```{r}
+dim_name <- "Frustration"
+
+nasa_data <- tlx_long %>% filter(Dimension == dim_name)
+
+## 2.1 Normalität der Scores pro Condition
+nasa_data %>%
+  group_by(Condition) %>%
+  shapiro_test(Score)
+# optional: QQ-Plots
+ggqqplot(nasa_data, "Score", ggtheme = theme_bw()) + facet_wrap(~ Condition)
+
+```
+
+
+| Dimension | Normal distributed violated? |
+|------------------------------------------|
+|mental     | 2 violated
+|physical   | 0 violated
+|temporal   | 3 violated
+|Performance 
+expectation | 3 violated
+|Effort     | 1 violated
+|Frustration| 4 violated   
+------------------------------------------
+
+
+=> Decision: violations & n = 31
+all workload dimensions are evaluated using the Friedman test
+
+
+
+
+### 2. Testing for any significant differences (including correction)
+
+```{r}
+# Friedman tests for all six NASA-TLX dimensions
+friedman_results_nasa <- tlx_long %>%
+  group_by(Dimension) %>%
+  friedman_test(Score ~ Condition | id) %>%   # one Friedman test per Dimension
+  ungroup() %>%
+  # Holm correction across the six dimensions
+  mutate(
+    p_holm = p.adjust(p, method = "holm"),
+    sig_holm_0.05 = p_holm < 0.05
+  )
+
+friedman_results_nasa
+
+```
+
+Description: statistic – Friedman χ²; df – degrees of freedom; p – ungefilterter p-Wert; p_holm – Holm-korrigierter p-Wert (über alle 6 Dimensionen); sig_holm_0.05 – TRUE/FALSE, ob nach Holm noch signifikant bei α = .05
+
+
+### 3. Post hoc testing for significant differences
+```{r}
+sig_dims <- friedman_results_nasa %>% # only significant
+  filter(sig_holm_0.05 == TRUE) %>%
+  pull(Dimension)
+
+posthoc_results_nasa <- tlx_long %>%
+  filter(Dimension %in% sig_dims) %>%
+  group_by(Dimension) %>%
+  pairwise_wilcox_test(
+    Score ~ Condition,
+    paired = TRUE,
+    p.adjust.method = "holm"   # correction WITHIN dimension
+  ) %>%
+  ungroup()
+
+posthoc_results_nasa
+```
+
+
+
+
+
+```{r}
+library(coin)
+
+
+posthoc_results_nasa_effect <- tlx_long %>%
+  filter(Dimension %in% sig_dims) %>%
+  group_by(Dimension) %>%
+  wilcox_effsize(
+    Score ~ Condition,
+    paired = TRUE
+  ) %>%
+  ungroup()
+
+posthoc_results_nasa_effect
+```
+
+```{r}
+
+combined_nasa_posthoc <- posthoc_results_nasa %>%
+  # join über gemeinsame Spalten
+  left_join(
+    posthoc_results_nasa_effect,
+    by = c(".y.", "group1", "group2", "Dimension", "n1", "n2")
+  ) %>%
+  # Spalten etwas ordnen/umbenennen
+  transmute(
+    Dimension,
+    Comparison = paste(group1, "vs.", group2),
+    n = n1,
+    W = statistic,
+    p,
+    p_adj = p.adj,
+    signif = p.adj.signif,
+    r = effsize,
+    magnitude
+  )
+
+combined_nasa_posthoc
+```
+
+Creating plot
+
+```{r}
+sig_pairs_stars <- posthoc_results_nasa %>%
+  filter(p.adj < 0.05) %>%
+  transmute(
+    Dimension,
+    group1,
+    group2,
+    stars = p.adj.signif   
+  )
+```
+
+
+
+```{r}
+library(ggsignif)
+plot_tlx_dim <- function(dim_name) {
+  data_dim <- tlx_long %>% filter(Dimension == dim_name)
+  sig_dim  <- sig_pairs_stars %>% filter(Dimension == dim_name)
+
+  p <- ggplot(data_dim, aes(x = Condition, y = Score, fill = Condition)) +
+    geom_boxplot(width = 0.6, outlier.size = 0.7, linewidth = 0.3) +
+    scale_fill_manual(values = colors_iam) +
+    labs(
+      title = dim_name,
+      x = "Condition",
+      y = "Response (1 = low, 21 = high)"
+    ) +
+    theme_classic(base_size = 9) +
+    theme(
+      legend.position = "none",
+      plot.title      = element_text(face = "bold", hjust = 0.5)
+    )
+
+  if (nrow(sig_dim) == 0) {
+    return(p + scale_y_continuous(limits = c(1, 21), breaks = seq(1, 21, 5)))
+  }
+
+  y_base <- max(data_dim$Score, na.rm = TRUE) + 0.8
+  y_step <- 0.8
+  sig_dim$y_pos <- y_base + y_step * (seq_len(nrow(sig_dim)) - 1)
+
+  ymax <- max(sig_dim$y_pos) + 0.5
+
+  p +
+    scale_y_continuous(limits = c(1, ymax), breaks = seq(1, 21, 5)) +
+    ggsignif::geom_signif(
+      data       = sig_dim,
+      manual     = TRUE,
+      inherit.aes = FALSE,
+      aes(
+        xmin       = group1,
+        xmax       = group2,
+        annotations = stars,
+        y_position = y_pos
+      ),
+      tip_length = 0.01,
+      textsize   = 3
+    )
+}
+```
+
+```{r}
+sig_pairs_stars %>%
+  count(Dimension)
+```
+
+
+```{r}
+p1 <- plot_tlx_dim("Mental demand")
+p2 <- plot_tlx_dim("Physical demand")
+p3 <- plot_tlx_dim("Temporal demand")
+p4 <- plot_tlx_dim("Performance expectation")
+p5 <- plot_tlx_dim("Effort")
+p6 <- plot_tlx_dim("Frustration")
+
+(p1 | p2 | p3) /
+(p4 | p5 | p6)
+```
+Save image as pdf
+```{r}
+pdf("workload.pdf", width = 6.05, height = 4)  # Größe in Inches
+# Hier dein Plot-Code:
+p1 <- plot_tlx_dim("Mental demand")
+p2 <- plot_tlx_dim("Physical demand")
+p3 <- plot_tlx_dim("Temporal demand")
+p4 <- plot_tlx_dim("Performance expectation")
+p5 <- plot_tlx_dim("Effort")
+p6 <- plot_tlx_dim("Frustration")
+
+(p1 | p2 | p3) /
+(p4 | p5 | p6)         # oder ggplot(...), etc.
+dev.off()
+```
+
+
+
+
+
+
+## Usability
+
+VR Usability 
+9 items: vrsuq1i1, vrsuq1i2, vrsuq1i3r, vrsuq1i4, vrsuq1i5, vrsuq1i6, vrsuq1i7, vrsuq1i8r, vrsuq1i9r   
+3 subscales: effectiveness, efficiency, satisfaction => Entscheidung für Subscales **todo**
+Abbildung der 3 suscalen mit jeweils den 4 bedingungen
+Answer scale: 1 (low) to 5 (high)
+
+
+
+
+### 1. recode
+```{r}
+data <- data %>%
+  mutate(
+    vrsuq1i3 = recode(vrsuq1i3r, `5` = 1, `4` = 2, `3` = 3, `2` = 4, `1` = 5),
+    vrsuq1i8 = recode(vrsuq1i8r, `5` = 1, `4` = 2, `3` = 3, `2` = 4, `1` = 5),
+    vrsuq1i9 = recode(vrsuq1i9r, `5` = 1, `4` = 2, `3` = 3, `2` = 4, `1` = 5)
+  )
+
+data <- data %>%
+  mutate(
+    vrsuq2i3 = recode(vrsuq2i3r, `5` = 1, `4` = 2, `3` = 3, `2` = 4, `1` = 5),
+    vrsuq2i8 = recode(vrsuq2i8r, `5` = 1, `4` = 2, `3` = 3, `2` = 4, `1` = 5),
+    vrsuq2i9 = recode(vrsuq2i9r, `5` = 1, `4` = 2, `3` = 3, `2` = 4, `1` = 5)
+  )
+
+data <- data %>%
+  mutate(
+    vrsuq3i3 = recode(vrsuq3i3r, `5` = 1, `4` = 2, `3` = 3, `2` = 4, `1` = 5),
+    vrsuq3i8 = recode(vrsuq3i8r, `5` = 1, `4` = 2, `3` = 3, `2` = 4, `1` = 5),
+    vrsuq3i9 = recode(vrsuq3i9r, `5` = 1, `4` = 2, `3` = 3, `2` = 4, `1` = 5)
+  )
+
+data <- data %>%
+  mutate(
+    vrsuq4i3 = recode(vrsuq4i3r, `5` = 1, `4` = 2, `3` = 3, `2` = 4, `1` = 5),
+    vrsuq4i8 = recode(vrsuq4i8r, `5` = 1, `4` = 2, `3` = 3, `2` = 4, `1` = 5),
+    vrsuq4i9 = recode(vrsuq4i9r, `5` = 1, `4` = 2, `3` = 3, `2` = 4, `1` = 5)
+  )
+```
+
+
+
+
+### 2. reliability for the three subscales
+
+
+2.2 Reliability for the subscales [over 4 cnditions]
+effectiveness
+```{r}
+alpha(data[, c("vrsuq1i1", "vrsuq1i2", "vrsuq1i3")], check.keys =TRUE)
+alpha(data[, c("vrsuq2i1", "vrsuq2i2", "vrsuq2i3")], check.keys =TRUE)
+alpha(data[, c("vrsuq3i1", "vrsuq3i2", "vrsuq3i3")], check.keys =TRUE)
+alpha(data[, c("vrsuq4i1", "vrsuq4i2", "vrsuq4i3")], check.keys =TRUE)
+```
+
+
+efficiency
+```{r}
+alpha(data[, c("vrsuq1i4", "vrsuq1i5", "vrsuq1i6")], check.keys =TRUE)
+alpha(data[, c("vrsuq2i4", "vrsuq2i5", "vrsuq2i6")], check.keys =TRUE)
+alpha(data[, c("vrsuq3i4", "vrsuq3i5", "vrsuq3i6")], check.keys =TRUE)
+alpha(data[, c("vrsuq4i4", "vrsuq4i5", "vrsuq4i6")], check.keys =TRUE)
+```
+
+satisfaction
+```{r}
+alpha(data[, c("vrsuq1i7", "vrsuq1i8", "vrsuq1i9")], check.keys =TRUE)
+alpha(data[, c("vrsuq2i7", "vrsuq2i8", "vrsuq2i9")], check.keys =TRUE)
+alpha(data[, c("vrsuq3i7", "vrsuq3i8", "vrsuq3i9")], check.keys =TRUE)
+alpha(data[, c("vrsuq4i7", "vrsuq4i8", "vrsuq4i9")], check.keys =TRUE)
+```
+
+
+### 3. Mean computations per sub-dimension and condition
+
+Compute means effectiveness
+```{r}
+data <- data %>%
+  mutate(RGBs_VRsuq_effectiveness = rowMeans(select(., vrsuq1i1, vrsuq1i2, vrsuq1i3, ), na.rm = TRUE))
+
+data <- data %>%
+  mutate(PC_VRsuq_effectiveness = rowMeans(select(., vrsuq2i1, vrsuq2i2, vrsuq2i3, ), na.rm = TRUE))
+
+data <- data %>%
+  mutate(PC_RGB_VRsuq_effectiveness = rowMeans(select(., vrsuq3i1, vrsuq3i2, vrsuq3i3, ), na.rm = TRUE))
+
+data <- data %>%
+  mutate(OT_VRsuq_effectiveness = rowMeans(select(., vrsuq4i1, vrsuq4i2, vrsuq4i3, ), na.rm = TRUE))
+```
+
+
+
+Compute means efficiency
+```{r}
+data <- data %>%
+  mutate(RGBs_VRsuq_efficiency = rowMeans(select(., vrsuq1i4, vrsuq1i5, vrsuq1i6, ), na.rm = TRUE))
+
+data <- data %>%
+  mutate(PC_VRsuq_efficiency = rowMeans(select(., vrsuq2i4, vrsuq2i5, vrsuq2i6, ), na.rm = TRUE))
+
+data <- data %>%
+  mutate(PC_RGB_VRsuq_efficiency = rowMeans(select(., vrsuq3i4, vrsuq3i5, vrsuq3i6, ), na.rm = TRUE))
+
+data <- data %>%
+  mutate(OT_VRsuq_efficiency = rowMeans(select(., vrsuq4i4, vrsuq4i5, vrsuq4i6, ), na.rm = TRUE))
+```
+
+
+Compute means satisfaction
+```{r}
+data <- data %>%
+  mutate(RGBs_VRsuq_satisfaction = rowMeans(select(., vrsuq1i7, vrsuq1i8, vrsuq1i9, ), na.rm = TRUE))
+
+data <- data %>%
+  mutate(PC_VRsuq_satisfaction = rowMeans(select(., vrsuq2i7, vrsuq2i8, vrsuq2i9, ), na.rm = TRUE))
+
+data <- data %>%
+  mutate(PC_RGB_VRsuq_satisfaction = rowMeans(select(., vrsuq3i7, vrsuq3i8, vrsuq3i9, ), na.rm = TRUE))
+
+data <- data %>%
+  mutate(OT_VRsuq_satisfaction = rowMeans(select(., vrsuq4i7, vrsuq4i8, vrsuq4i9, ), na.rm = TRUE))
+```
+
+
+
+### 4. descriptive analysis
+```{r}
+par(mfrow=c(1,3))
+boxplot(data$RGBs_VRsuq_effectiveness, data$PC_VRsuq_effectiveness, data$PC_RGB_VRsuq_effectiveness, data$OT_VRsuq_effectiveness, names = c("RGBs", "PC", "PC+RGB", "OT"), 
+        col = colors_iam,
+        main = "Satisfaction", ylab = "Responses 1 (low) to 5 (high)", ylim = c(1, 5)
+        )
+
+boxplot(data$RGBs_VRsuq_efficiency, data$PC_VRsuq_efficiency, data$PC_RGB_VRsuq_efficiency, data$OT_VRsuq_efficiency, names = c("RGBs", "PC", "PC+RGB", "OT"), 
+        col = colors_iam,
+        main = "Efficiency", ylab = "Responses 1 (low) to 5 (high)", ylim = c(1, 5)
+        )
+
+boxplot(data$RGBs_VRsuq_satisfaction, data$PC_VRsuq_satisfaction, data$PC_RGB_VRsuq_satisfaction, data$OT_VRsuq_satisfaction, names = c("RGBs", "PC", "PC+RGB", "OT"), 
+        col = colors_iam,
+        main = "Satisfaction", ylab = "Responses 1 (low) to 5 (high)", ylim = c(1, 5)
+        )
+```
+
+
+
+
+### 5. Significance testing
+
+Long format
+```{r}
+vr_long <- data %>%
+  select(
+    id,
+    RGBs_VRsuq_effectiveness, PC_VRsuq_effectiveness, PC_RGB_VRsuq_effectiveness, OT_VRsuq_effectiveness,
+    RGBs_VRsuq_efficiency,    PC_VRsuq_efficiency,    PC_RGB_VRsuq_efficiency,    OT_VRsuq_efficiency,
+    RGBs_VRsuq_satisfaction,  PC_VRsuq_satisfaction,  PC_RGB_VRsuq_satisfaction,  OT_VRsuq_satisfaction
+  ) %>%
+  pivot_longer(
+    cols = -id,
+    names_to = c("Condition", "Dimension"),
+    names_pattern = "(.*)_VRsuq_(.*)",
+    values_to = "Score"
+  ) %>%
+  mutate(
+    Condition = factor(Condition,
+      levels = c("RGBs", "PC", "PC_RGB", "OT"),
+      labels = c("RGBs", "PC", "PC+RGB", "OT")  # für konsistente Labels
+    ),
+    Dimension = recode(Dimension,
+      "effectiveness" = "Effectiveness",
+      "efficiency"    = "Efficiency",
+      "satisfaction"  = "Satisfaction"
+    ),
+    Dimension = factor(Dimension,
+      levels = c("Effectiveness", "Efficiency", "Satisfaction"))
+  )
+```
+
+
+```{r}
+library(rstatix)
+
+vr_long %>%
+  group_by(Dimension, Condition) %>%
+  shapiro_test(Score)
+```
+
+
+
+```{r}
+friedman_vr <- vr_long %>%
+  split(.$Dimension) %>%                               # nach Dimension aufteilen
+  purrr::map_df(
+    ~ rstatix::friedman_test(Score ~ Condition | id,   # Friedman je Teilmenge
+                             data = .x),
+    .id = "Dimension"                                  # Name aus split als Spalte
+  ) %>%
+  mutate(
+    p_holm = p.adjust(p, method = "holm"),
+    sig_holm_0.05 = p_holm < 0.05
+  )
+
+friedman_vr
+```
+
+
+### 5. Post hoc tests
+
+```{r}
+sig_dims_vr <- friedman_vr %>%
+  filter(sig_holm_0.05) %>%
+  pull(Dimension)
+
+# Post-hoc Wilcoxon Tests
+posthoc_vr <- vr_long %>%
+  filter(Dimension %in% sig_dims_vr) %>%
+  group_by(Dimension) %>%
+  pairwise_wilcox_test(
+    Score ~ Condition,
+    paired = TRUE,
+    p.adjust.method = "holm"
+  ) %>%
+  ungroup()
+
+posthoc_vr
+
+```
+
+
+
+```{r}
+posthoc_vr_effect <- vr_long %>%
+  filter(Dimension %in% sig_dims_vr) %>%
+  group_by(Dimension) %>%
+  wilcox_effsize(Score ~ Condition, paired = TRUE) %>%
+  ungroup()
+
+posthoc_vr_effect
+```
+
+```{r}
+combined_vr <- posthoc_vr %>%
+  left_join(
+    posthoc_vr_effect,
+    by = c(".y.", "group1", "group2", "Dimension", "n1", "n2")
+  ) %>%
+  mutate(
+    r = round(effsize, 3)
+  ) %>%
+  
+  transmute(
+    Dimension,
+    group1,
+    group2,
+    n = n1,
+    W = statistic,
+    p,
+    p_adj = p.adj,
+    signif = p.adj.signif,
+    r,
+    magnitude
+  )
+
+combined_vr
+```
+
+
+
+Plotting:
+```{r}
+sig_pairs_vr <- combined_vr %>%
+  filter(p_adj < 0.05) %>%
+  select(Dimension, group1, group2, stars = signif)
+```
+
+Plot function
+```{r}
+plot_vr_dim <- function(dim_name) {
+  
+  data_dim <- vr_long %>% filter(Dimension == dim_name)
+  sig_dim  <- sig_pairs_vr %>% filter(Dimension == dim_name)
+  
+  p <- ggplot(
+    data_dim,
+    aes(x = Condition, y = Score, fill = Condition)
+  ) +
+    geom_boxplot(width = 0.6, outlier.size = 0.7, linewidth = 0.3) +
+    scale_y_continuous(limits = c(1, 6), breaks = 1:5) +
+    scale_fill_manual(values = colors_iam) +
+    labs(
+      title = dim_name,
+      x = "Condition",
+      y = "Response (1 = low, 5 = high)"
+    ) +
+    theme_classic(base_size = 9) +
+    theme(
+      legend.position = "none",
+      plot.title      = element_text(face = "bold", hjust = 0.5)
+    )
+  
+  if (nrow(sig_dim) == 0)
+    return(p)
+
+  # Dynamische y-Positionen für Klammern
+  y_base <- max(data_dim$Score, na.rm = TRUE) + 0.4
+  y_step <- 0.4
+  sig_dim$y_pos <- y_base + y_step * (seq_len(nrow(sig_dim)) - 1)
+  
+  ymax <- max(sig_dim$y_pos) + 0.4
+  
+  p +
+    scale_y_continuous(limits = c(1, ymax), breaks = 1:5) +
+    geom_signif(
+      data       = sig_dim,
+      manual     = TRUE,
+      inherit.aes = FALSE,
+      aes(
+        xmin       = group1,
+        xmax       = group2,
+        annotations = stars,
+        y_position = y_pos
+      ),
+      tip_length = 0.01,
+      textsize   = 3
+    )
+}
+```
+
+
+Plot cration
+```{r}
+p1 <- plot_vr_dim("Effectiveness")
+p2 <- plot_vr_dim("Efficiency")
+p3 <- plot_vr_dim("Satisfaction")
+
+(p1 | p2 | p3)
+```
+
+
+save plot as pdf
+```{r}
+pdf("VRusability.pdf", width = 6.05, height = 4)  # Größe in Inches
+p1 <- plot_vr_dim("Effectiveness")
+p2 <- plot_vr_dim("Efficiency")
+p3 <- plot_vr_dim("Satisfaction")
+
+(p1 | p2 | p3)
+dev.off()
+```
+
+-----------------------------------------------------------------------------
+# Preference Ranking
+Answer format: rgb, pc, rgbpc, ot 
+
+descriptive inspection of answers
+```{r}
+table(data$rank1)
+table(data$rank2)
+table(data$rank3)
+table(data$rank4)
+```
+
+
+Label modification
+```{r}
+# rank1, rank2, rank3, rank4
+#rgb, pc, rgbpc, ot 
+
+data <- data %>%
+  mutate(across(rank1:rank4, ~ recode(.,
+    "rgb" = "RGBs",
+    "pc" = "PC",
+    "rgbpc" = "PC+RGB",
+    "ot" = "OT"
+  )))
+```
+
+
+
+
+```{r}
+tableR1 <- table(unlist(data$rank1))
+tableR2 <- table(unlist(data$rank2))
+tableR3 <- table(unlist(data$rank3))
+tableR4 <- table(unlist(data$rank4))
+
+print(tableR1)
+print(tableR2)
+print(tableR3)
+print(tableR4)
+```
+
+Put data from tables in a dataframe
+```{r}
+# in data frame
+df_pref <- bind_rows(
+  as.data.frame(as.table(tableR1)) %>% mutate(Preference = "1st Preference"),
+  as.data.frame(as.table(tableR2)) %>% mutate(Preference = "2nd Preference"),
+  as.data.frame(as.table(tableR3)) %>% mutate(Preference = "3rd Preference"),
+  as.data.frame(as.table(tableR4)) %>% mutate(Preference = "4th Preference")
+)
+
+# Spalten umbenennen
+colnames(df_pref) <- c("Category", "Frequency", "Preference")
+
+
+df_pref <- df_pref %>%
+  complete(Preference, Category, fill = list(Frequency = 0))
+```
+
+Reorder data frame - to match with expected order from the other plots:
+RGB, PC, RGB + PC, OT
+```{r}
+df_pref$Category <- factor(df_pref$Category,
+                           levels = c("RGBs", "PC", "PC+RGB", "OT"))
+```
+
+
+
+```{r}
+
+
+preferences <- ggplot(df_pref, aes(x = Preference, y = Frequency, fill = Category)) +
+  geom_bar(stat = "identity", width = 0.5, position = position_dodge(width = 0.7)) +
+  geom_text(aes(label = Frequency),
+            position = position_dodge(width = 0.7),
+            vjust = -0.3, size = 3.5) +
+  geom_vline(xintercept = c(1.5, 2.5, 3.5), color = "black", linewidth = 0.5) +
+  scale_fill_manual(values = colors_iam) +
+  labs(
+    title = "Preferences for visualization methods",
+    x = "Preference level",
+    y = "Absolute Frequency"
+  ) +
+  coord_cartesian(ylim = c(0, 25)) +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.title = element_text(face = "bold"),
+    axis.text = element_text(color = "black"),
+    axis.line = element_line(colour = "black", linewidth = 0.5),
+    panel.border = element_rect(colour = "black", fill = NA, linewidth = 0.5),
+    axis.ticks = element_line()
+  )
+
+print(preferences)
+```
+
+
+
+save plot as pdf
+```{r}
+pdf("personalPreference.pdf", width = 6.05, height = 4)  # Größe in Inches
+ggplot(df_pref, aes(x = Preference, y = Frequency, fill = Category)) +
+  geom_bar(stat = "identity", width = 0.5, position = position_dodge(width = 0.7)) +
+  geom_text(aes(label = Frequency),
+            position = position_dodge(width = 0.7),
+            vjust = -0.3, size = 3.5) +
+  geom_vline(xintercept = c(1.5, 2.5, 3.5), color = "black", linewidth = 0.5) +
+  scale_fill_manual(values = colors_iam) +
+  labs(
+    title = "Preferences for visualization methods",
+    x = "Preference level",
+    y = "Absolute Frequency"
+  ) +
+  coord_cartesian(ylim = c(0, 25)) +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.title = element_text(face = "bold"),
+    axis.text = element_text(color = "black"),
+    axis.line = element_line(colour = "black", linewidth = 0.5),
+    panel.border = element_rect(colour = "black", fill = NA, linewidth = 0.5),
+    axis.ticks = element_line()
+  )
+dev.off()
+```
+
+
+
+# Overall open feedback
+
+Exportable general feedback
+```{r}
+unique_feedback <- data %>%
+  filter(!is.na(generalFeedback), generalFeedback != "") %>%
+  distinct(generalFeedback)
+
+cat(unique_feedback$generalFeedback, sep = "\n\n")
+```
+
+Count general feedback
+```{r}
+sum(data$generalFeedback != "" & !is.na(data$generalFeedback))
+```
+
+
+----------------------------------------------------------------------------
+
+# Performance data
+
+Prepare raw data - use of excel functions
+1. Add in data the counted numbers of fails per tasks
+2. Compute sum of fails per visualization conditions
+
+
+
+## Binary performance per visualization conditions
+
+### Descriptive analysis
+
+```{r}
+describe(dataPer$RGBD_Fails)
+```
+
+
+```{r}
+describe(dataPer$PC_Fails)
+```
+
+```{r}
+describe(dataPer$RGBD_PC_Fails)
+```
+
+
+```{r}
+describe(dataPer$OT_Fails)
+```
+
+
+
+
+Boxplots for visualization
+```{r}
+boxplot(dataPer$RGBD_Fails, dataPer$PC_Fails, dataPer$RGBD_PC_Fails, dataPer$OT_Fails, 
+        names = c("RGBs", "PC", "PC+RGB", "OT"), 
+        col = colors_iam,
+        main = "Frequency of fails", ylab = "Absolute frequency of failures", ylim = c(0, 6)
+        )
+
+```
+
+1. compute success rate:
+
+```{r}
+dataPer$RGBD_Success <- 1 - dataPer$RGBD_Fails / 12
+dataPer$PC_Success   <- 1 - dataPer$PC_Fails / 12
+dataPer$RGBD_PC_Success <- 1 - dataPer$RGBD_PC_Fails / 12
+dataPer$OT_Success <- 1 - dataPer$OT_Fails / 12
+```
+
+own: relative error
+```{r}
+dataPer$RGBD_RelFails <- dataPer$RGBD_Fails / 12
+dataPer$PC_RelFails   <- dataPer$PC_Fails / 12
+dataPer$RGBD_PC_RelFails <- dataPer$RGBD_PC_Fails / 12
+dataPer$OT_RelFails   <- dataPer$OT_Fails / 12
+```
+Mean success per condition
+```{r}
+mean_success <- c(
+  mean(dataPer$RGBD_Success, na.rm = TRUE),
+  mean(dataPer$OT_Success, na.rm = TRUE),
+  mean(dataPer$PC_Success, na.rm = TRUE),
+  mean(dataPer$RGBD_PC_Success, na.rm = TRUE)
+)
+
+names(mean_success) <- c("RGBs", "OT", "PC", "PC+RGB")
+```
+
+```{r}
+barplot(mean_success,
+        col = colors_iam,
+        ylim = c(0, 1),
+        ylab = "Success Rate",
+        main = "Overall Success Rate by Condition"
+)
+
+# Beschriftung über Balken
+text(x = seq_along(mean_success),
+     y = mean_success + 0.03,
+     labels = sprintf("%.2f", mean_success),
+     cex = 0.9)
+```
+Combined over 12 trials (4 trials for each task)
+
+
+including error rates
+```{r}
+success_mat <- data.frame(
+  RGBs    = dataPer$RGBD_Success,
+  PC      = dataPer$PC_Success,
+  PC_RGB  = dataPer$RGBD_PC_Success,
+  OT      = dataPer$OT_Success
+)
+
+#means <- colMeans(success_mat, na.rm = TRUE)
+#ses   <- apply(success_mat, 2, function(x) sd(x, na.rm = TRUE) / sqrt(sum(!is.na(x))))
+```
+
+
+
+```{r}
+df <- success_mat %>%
+  pivot_longer(cols = everything(),
+               names_to = "Condition",
+               values_to = "Success") %>%
+  mutate(Condition = factor(Condition,
+                            levels = c("RGBs", "PC", "PC_RGB", "OT")),
+         Label = factor(Condition,
+                        labels = c("RGBs", "PC", "PC+RGB", "OT")))
+
+df_summary <- df %>%
+  group_by(Condition, Label) %>%
+  summarise(
+    mean = mean(Success, na.rm = TRUE),
+    se   = sd(Success, na.rm = TRUE) / sqrt(n())
+  )
+```
+
+
+```{r}
+ggplot(df_summary, aes(x = Label, y = mean, fill = Label)) +
+  geom_col(width = 0.7) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se),
+                width = 0.18, linewidth = 0.9) +
+  geom_text(aes(label = sprintf("%.2f", mean),
+                y = mean + se + 0.05),      # mehr Abstand!
+            size = 5) +
+  scale_fill_manual(values = colors_iam) +
+
+  # Y-Achse leicht erweitern für Platz
+  scale_y_continuous(
+    limits = c(0.0, 1.1),
+    breaks = seq(0.0, 1.0, by = 0.1),
+    labels = sprintf("%.1f", seq(0.0, 1.0, 0.1))
+  ) +
+
+  labs(
+    title = "Overall Success Rate by Condition",
+    x = "",
+    y = "Success Rate"
+  ) +
+
+  # Klare Achsenlinien (wie dein Vergleich)
+  theme_classic(base_size = 14) +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5)
+  )
+
+```
+
+save plot as pdf
+```{r}
+pdf("success.pdf", width = 6.05, height = 4)  # Größe in Inches
+ggplot(df_summary, aes(x = Label, y = mean, fill = Label)) +
+  geom_col(width = 0.7) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se),
+                width = 0.18, linewidth = 0.9) +
+  geom_text(aes(label = sprintf("%.2f", mean),
+                y = mean + se + 0.05),      # mehr Abstand!
+            size = 5) +
+  scale_fill_manual(values = colors_iam) +
+
+  # Y-Achse leicht erweitern für Platz
+  scale_y_continuous(
+    limits = c(0.0, 1.1),
+    breaks = seq(0.0, 1.0, by = 0.1),
+    labels = sprintf("%.1f", seq(0.0, 1.0, 0.1))
+  ) +
+
+  labs(
+    title = "Overall Success Rate by Condition",
+    x = "",
+    y = "Success Rate"
+  ) +
+
+  # Klare Achsenlinien (wie dein Vergleich)
+  theme_classic(base_size = 14) +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5)
+  )
+dev.off()
+```
+
+
+
+
+OWN:
+```{r}
+boxplot(dataPer$RGBD_Success,
+        dataPer$PC_Success,
+        dataPer$RGBD_PC_Success,
+        dataPer$OT_Success,
+        names = c("RGBs", "PC", "PC+RGB", "OT"),
+        col = colors_iam,
+        main = "Success Rate",
+        ylab = "Success Rate",
+        ylim = c(0.0, 1)
+)
+```
+
+
+
+
+
+Success rates were computed by normalizing the number of failures per condition to the total number of trials (12)
+
+
+
+
+
+## Performance time
+
+Check data types
+```{r}
+str(dataPer$RGBD_PP_T1)
+```
+
+```{r}
+sapply(dataPer, mode)
+```
+
+
+
+Convert chars to numerical values
+```{r}
+dataPer <- dataPer %>% 
+  mutate(
+    across(
+      .cols = where(is.character) & matches("^(RGBD|PC|RGBD_PC|OT)_.*_T[1-4]$"),
+      ~ as.numeric(na_if(.x, "FAIL"))
+    )
+  )
+```
+
+
+
+Check conversion
+```{r}
+str(dataPer %>% select(matches("^(RGBD|PC|RGBD_PC|OT)_.*_T[0-4]+$")))
+```
+  
+  
+```{r}
+#dataPer <- dataPer %>%   mutate(
+    #id = factor(id)
+```
+  
+
+
+
+### Per condition ignoring Tasks
+
+RGBD
+```{r}
+dataPer <- dataPer %>%
+  # RGBD means
+  mutate(
+    RGBD_mean = rowMeans(select(., RGBD_PP_T1, RGBD_PP_T2, RGBD_PP_T3, RGBD_PP_T4,
+                                   RGBD_TT_T1, RGBD_TT_T2, RGBD_TT_T3, RGBD_TT_T4,
+                                   RGBD_WG_T1, RGBD_WG_T2, RGBD_WG_T3, RGBD_WG_T4), 
+                         na.rm = TRUE)
+  )
+
+describe(dataPer$RGBD_mean)
+```
+
+
+PC condition
+```{r}
+dataPer <- dataPer %>%
+  # PC means
+  mutate(
+    PC_mean = rowMeans(select(.,   PC_PP_T1, PC_PP_T2, PC_PP_T3, PC_PP_T4,
+                                   PC_TT_T1, PC_TT_T2, PC_TT_T3, PC_TT_T4,
+                                   PC_WG_T1, PC_WG_T2, PC_WG_T3, PC_WG_T4), 
+                         na.rm = TRUE)
+  )
+
+describe(dataPer$PC_mean)
+
+```
+
+PC & RGB condition
+```{r}
+dataPer <- dataPer %>%
+  # RGBD_PC means
+  mutate(
+    RGBD_PC_mean = rowMeans(select(.,   RGBD_PC_PP_T1, RGBD_PC_PP_T2, RGBD_PC_PP_T3, RGBD_PC_PP_T4,
+                                   RGBD_PC_TT_T1, RGBD_PC_TT_T2, RGBD_PC_TT_T3, RGBD_PC_TT_T4,
+                                   RGBD_PC_WG_T1, RGBD_PC_WG_T2, RGBD_PC_WG_T3, RGBD_PC_WG_T4), 
+                         na.rm = TRUE)
+  )
+
+describe(dataPer$RGBD_PC_mean)
+```
+
+OT condition
+```{r}
+dataPer <- dataPer %>%
+  # OT means
+  mutate(
+    OT_mean = rowMeans(select(.,   OT_PP_T1, OT_PP_T2, OT_PP_T3, OT_PP_T4,
+                                   OT_TT_T1, OT_TT_T2, OT_TT_T3, OT_TT_T4,
+                                   OT_WG_T1, OT_WG_T2, OT_WG_T3, OT_WG_T4), 
+                         na.rm = TRUE)
+  )
+
+describe(dataPer$OT_mean)
+```
+
+
+Boxplot for descriptive completion time
+```{r}
+boxplot(dataPer$RGBD_mean, dataPer$PC_mean, dataPer$RGBD_PC_mean, dataPer$OT_mean, 
+        names = c("RGBs", "PC", "PC+RGB", "OT"), 
+        col = colors_iam,
+        main = "Completion time", ylab = "Completion time in seconds", ylim = c(0, 125)
+        )
+```
+
+
+```{r}
+library(tidyverse)
+library(rstatix)
+```
+
+### significance testing
+
+long format
+```{r}
+data_time_long <- dataPer %>%
+  pivot_longer(
+    cols = c(RGBD_mean, PC_mean, RGBD_PC_mean, OT_mean),
+    names_to = "condition",
+    values_to = "value"
+  )
+
+```
+
+Pretest conditions
+```{r}
+# shapiro
+data_time_long %>%
+  group_by(condition) %>%
+  shapiro_test(value)
+```
+
+
+```{r}
+# levene
+data_time_long %>% levene_test(value ~ condition)
+```
+
+friedman test
+```{r}
+friedman_res_time <- data_time_long %>%
+  friedman_test(value ~ condition | id)
+
+friedman_res_time
+
+```
+
+
+post-hoc tests
+```{r}
+posthoc_friedman_time <- data_time_long %>%
+  pairwise_wilcox_test(
+    value ~ condition, 
+    paired = TRUE,
+    p.adjust.method = "holm"
+  )
+
+posthoc_friedman_time
+```
+
+
+
+### Plot with significance results
+
+
+```{r}
+
+library(ggsignif) 
+
+
+comp_long <- dataPer %>%
+  select(id, RGBD_mean, PC_mean, RGBD_PC_mean, OT_mean) %>%
+  pivot_longer(
+    cols      = c(RGBD_mean, PC_mean, RGBD_PC_mean, OT_mean),
+    names_to  = "Condition",
+    values_to = "Time"
+  ) %>%
+  mutate(
+    id = factor(id),   # <-- wichtig
+    Condition = factor(
+      Condition,
+      levels = c("RGBD_mean", "PC_mean", "RGBD_PC_mean", "OT_mean"),
+      labels = c("RGBs", "PC", "PC+RGB", "OT")
+    )
+  )
+```
+
+
+```{r}
+friedman_ct <- friedman_test(Time ~ Condition | id, data = comp_long)
+friedman_ct
+
+posthoc_ct <- comp_long %>%
+  pairwise_wilcox_test(
+    Time ~ Condition,
+    paired = TRUE,
+    p.adjust.method = "holm"
+  )
+
+posthoc_ct
+```
+
+```{r}
+posthoc_ct2 <- posthoc_ct %>%
+  mutate(
+    signif3 = case_when(
+      p.adj < 0.001 ~ "***",
+      p.adj < 0.01  ~ "**",
+      p.adj < 0.05  ~ "*",
+      TRUE          ~ ""
+    )
+  )
+```
+
+
+```{r}
+sig_pairs_ct <- posthoc_ct2 %>%
+  filter(p.adj < 0.05) %>%
+  transmute(
+    group1,
+    group2,
+    stars = signif3    # <-- hier!
+  )
+```
+
+
+
+```{r}
+plot_completion_time <- function() {
+  
+  data_ct <- comp_long
+  sig_ct  <- sig_pairs_ct
+  
+  p <- ggplot(
+    data_ct,
+    aes(x = Condition, y = Time, fill = Condition)
+  ) +
+    geom_boxplot(width = 0.6, outlier.size = 0.7, linewidth = 0.3) +
+    scale_fill_manual(values = colors_iam) +
+    scale_y_continuous(limits = c(0, 120), breaks = seq(0, 120, 20)) +
+    labs(
+      title = "Completion time",
+      x     = "",
+      y     = "Completion time in seconds"
+    ) +
+    theme_classic(base_size = 9) +
+    theme(
+      legend.position = "none",
+      plot.title      = element_text(face = "bold", hjust = 0.5)
+    )
+  
+  # falls nichts signifikant ist
+  if (nrow(sig_ct) == 0)
+    return(p)
+  
+  # Dynamische y-Positionen für die Klammern
+  y_base <- max(data_ct$Time, na.rm = TRUE) + 5
+  y_step <- 5
+  sig_ct$y_pos <- y_base + y_step * (seq_len(nrow(sig_ct)) - 1)
+  ymax <- max(sig_ct$y_pos) + 5
+  
+  p +
+    scale_y_continuous(limits = c(0, ymax), breaks = seq(0, ymax, 20)) +
+    geom_signif(
+      data        = sig_ct,
+      manual      = TRUE,
+      inherit.aes = FALSE,
+      aes(
+        xmin        = group1,
+        xmax        = group2,
+        annotations = stars,
+        y_position  = y_pos
+      ),
+      tip_length = 0.01,
+      textsize   = 3
+    )
+}
+
+p_ct <- plot_completion_time()
+p_ct
+
+```
+
+
+
+save plot as pdf
+```{r}
+pdf("completionTime.pdf", width = 6.05, height = 4)  # Größe in Inches
+plot_completion_time <- function() {
+  
+  data_ct <- comp_long
+  sig_ct  <- sig_pairs_ct
+  
+  p <- ggplot(
+    data_ct,
+    aes(x = Condition, y = Time, fill = Condition)
+  ) +
+    geom_boxplot(width = 0.6, outlier.size = 0.7, linewidth = 0.3) +
+    scale_fill_manual(values = colors_iam) +
+    scale_y_continuous(limits = c(0, 120), breaks = seq(0, 120, 20)) +
+    labs(
+      title = "Completion time",
+      x     = "",
+      y     = "Completion time in seconds"
+    ) +
+    theme_classic(base_size = 9) +
+    theme(
+      legend.position = "none",
+      plot.title      = element_text(face = "bold", hjust = 0.5)
+    )
+  
+  # falls nichts signifikant ist
+  if (nrow(sig_ct) == 0)
+    return(p)
+  
+  # Dynamische y-Positionen für die Klammern
+  y_base <- max(data_ct$Time, na.rm = TRUE) + 5
+  y_step <- 5
+  sig_ct$y_pos <- y_base + y_step * (seq_len(nrow(sig_ct)) - 1)
+  ymax <- max(sig_ct$y_pos) + 5
+  
+  p +
+    scale_y_continuous(limits = c(0, ymax), breaks = seq(0, ymax, 20)) +
+    geom_signif(
+      data        = sig_ct,
+      manual      = TRUE,
+      inherit.aes = FALSE,
+      aes(
+        xmin        = group1,
+        xmax        = group2,
+        annotations = stars,
+        y_position  = y_pos
+      ),
+      tip_length = 0.01,
+      textsize   = 3
+    )
+}
+
+p_ct <- plot_completion_time()
+p_ct
+dev.off()
+```
+
+
+
+

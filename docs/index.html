@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4ef">
+  <title>What Should the Operator See? · IEEE RA-L</title>
+  <meta name="description" content="Evaluating visualization modalities for XR robot teleoperation. An IEEE RA-L paper comparing RGB streams, point clouds, hybrid PC+RGB, and stereo video with 31 participants.">
+  <link rel="canonical" href="https://enesulasdincer.github.io/What-Should-the-Operator-See/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="What Should the Operator See?">
+  <meta property="og:description" content="Global 3D structure meets local visual detail. Explore four XR teleoperation interfaces and twelve task recordings.">
+  <meta property="og:url" content="https://enesulasdincer.github.io/What-Should-the-Operator-See/">
+  <meta property="og:image" content="https://enesulasdincer.github.io/What-Should-the-Operator-See/assets/images/social-preview.jpg">
+  <meta property="og:image:alt" content="Four operator views in the XR teleoperation study: RGBs, PC, PC+RGB, and OpenTeleVision.">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <a class="wordmark" href="#" aria-label="What Should the Operator See? Home"><span class="mark" aria-hidden="true">◧</span> OPERATOR / VIEW</a>
+    <nav aria-label="Main navigation">
+      <a href="#explore">Recordings</a>
+      <a href="#system">System</a>
+      <a href="#results">Findings</a>
+      <a class="nav-code" href="https://github.com/EnesUlasDincer/What-Should-the-Operator-See">Code <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero wrap" aria-labelledby="paper-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> Accepted · IEEE Robotics and Automation Letters</p>
+        <h1 id="paper-title">What Should<br>the Operator<br><em>See?</em></h1>
+        <p class="subtitle">Evaluating Visualization Modalities<br class="desktop-break"> for XR Robot Teleoperation</p>
+        <p class="hero-summary">A study of how we show the robot’s world—and how that changes the way people manipulate it.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#explore">Explore the recordings <span aria-hidden="true">↗</span></a>
+          <a class="text-link" href="https://arxiv.org/abs/2604.03730">Read the preprint <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+      <figure class="hero-visual">
+        <div class="visual-label"><span class="status-dot" aria-hidden="true"></span> THE OPERATOR’S VIEW <span>PC + RGB</span></div>
+        <video id="hero-video" muted loop playsinline autoplay preload="metadata" poster="assets/images/pc-rgb-cup-insertion.jpg" aria-label="Short preview of cup insertion using point cloud and wrist-camera RGB">
+          <source src="assets/videos/hero.mp4" type="video/mp4">
+        </video>
+        <button id="hero-toggle" class="hero-toggle" type="button" aria-label="Pause preview">Pause preview <span aria-hidden="true">Ⅱ</span></button>
+        <figcaption><span>Global geometry. Local detail.</span><span>Real system recording</span></figcaption>
+      </figure>
+    </section>
+
+    <section class="paper-meta wrap" aria-label="Paper authors and study overview">
+      <div class="authors">
+        <p>
+          <a href="https://enesulasdincer.github.io/">Enes Ulas Dincer<sup>1</sup></a>,
+          <a href="https://www.ifab.kit.edu/english/287_2138.php">Manuel Zaremski<sup>2</sup></a>,
+          <a href="https://www.ifab.kit.edu/english/287_2936.php">Alexandra Nick<sup>2</sup></a>,
+          <span>Elias Wucher<sup>1</sup></span>,
+          <a href="https://www.ifab.kit.edu/english/287_1194.php">Barbara Deml<sup>2</sup></a>,
+          <a href="https://alr-kit.de/team/geri/">Gerhard Neumann<sup>1</sup></a>
+        </p>
+        <p class="affiliations"><sup>1</sup> Institute for Anthropomatics and Robotics &nbsp; <sup>2</sup> Institute of Human and Industrial Engineering<br>Karlsruhe Institute of Technology (KIT), Germany</p>
+      </div>
+      <dl class="study-stats">
+        <div><dt>Participants</dt><dd>31</dd></div>
+        <div><dt>Visualizations</dt><dd>04</dd></div>
+        <div><dt>Tasks</dt><dd>03</dd></div>
+      </dl>
+    </section>
+
+    <section class="intro wrap section-space" aria-labelledby="idea-title">
+      <p class="eyebrow section-index">01 / THE IDEA</p>
+      <div class="intro-grid">
+        <h2 id="idea-title">The whole scene.<br><em>And the fine details.</em></h2>
+        <div class="intro-text">
+          <p>Teleoperating a robot means acting through someone else’s eyes. Camera streams show fine textures. Point clouds reveal spatial relationships. What happens when we bring them together?</p>
+          <p>We combine a fused, semantically filtered 3D point cloud with a high-resolution wrist-camera view, then compare it with three other visualization configurations under the same leader–follower control loop.</p>
+          <details class="abstract">
+            <summary>Read the abstract <span aria-hidden="true">+</span></summary>
+            <p>Robot teleoperation is critical for applications such as remote maintenance, fleet robotics, search and rescue, and data collection for robot learning. Recent general-purpose XR frameworks have made immersive, point-cloud-based teleoperation broadly accessible, yet a central design question remains open: what should the operator actually see? We address this question with a VR telepresence system tailored to contact-rich manipulation: geometry from three RGB-D cameras is fused into a workspace-aligned point cloud, semantic filtering concentrates the point budget of a standalone headset on task-relevant geometry, and a wrist-mounted RGB stream supplies high-resolution local detail where point-cloud fidelity is limited.</p>
+            <p>In a controlled within-subject study with 31 participants, we compared multi-view RGB streams (RGBs), fused point cloud (PC), point cloud with wrist-mounted RGB (PC+RGB), and ego-centric stereo video (OpenTeleVision, OT) across cup insertion, T-shape assembly, and wire-loop placement. Failed trials were assigned the 120 s task limit in the primary completion-time analysis. PC+RGB yielded the lowest overall mean completion time (44.13 s) and the highest observed success rate (97.31%). Workload, usability, and preference results also favored the point-cloud-based configurations. These findings support combining global 3D scene structure with high-resolution local RGB detail in the tested leader–follower setup.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section id="explore" class="explore section-space" aria-labelledby="explore-title">
+      <div class="wrap">
+        <div class="section-heading">
+          <div><p class="eyebrow section-index">02 / SEE FOR YOURSELF</p><h2 id="explore-title">One task. <em>Four perspectives.</em></h2></div>
+          <p>Choose a task. Compare what the operator sees.</p>
+        </div>
+        <div class="demo-toolbar">
+          <div class="task-tabs" role="tablist" aria-label="Manipulation task">
+            <button id="tab-cup" type="button" role="tab" aria-selected="true" aria-controls="recordings" data-task="cup-insertion">01 <span>Cup insertion</span></button>
+            <button id="tab-assembly" type="button" role="tab" aria-selected="false" aria-controls="recordings" tabindex="-1" data-task="t-shape-assembly">02 <span>T-shape assembly</span></button>
+            <button id="tab-wire" type="button" role="tab" aria-selected="false" aria-controls="recordings" tabindex="-1" data-task="wire-loop">03 <span>Wire-loop</span></button>
+          </div>
+          <button type="button" class="compare-button" id="play-all">Play all <span aria-hidden="true">▶</span></button>
+        </div>
+        <p id="task-description" class="task-description">Insert two cups into their targets among occluding box obstacles: depth and contact alignment.</p>
+        <div id="recordings" class="video-grid" role="tabpanel" aria-labelledby="tab-cup" tabindex="0">
+          <article class="modality" data-mode="rgbs">
+            <div class="modality-heading"><h3>RGBs</h3><span>Multi-view RGB</span></div>
+            <video controls playsinline muted preload="none" poster="assets/images/rgbs-cup-insertion.jpg" aria-label="RGBs visualization, cup insertion"><source src="assets/videos/rgbs-cup-insertion.mp4" type="video/mp4">Your browser does not support embedded video. Use the recording link below.</video>
+            <p>Four camera streams on virtual screens. High-resolution images from several viewpoints.</p>
+            <a class="recording-link" href="assets/videos/rgbs-cup-insertion.mp4">Open recording <span aria-hidden="true">↗</span></a>
+          </article>
+          <article class="modality" data-mode="pc">
+            <div class="modality-heading"><h3>PC</h3><span>Fused point cloud</span></div>
+            <video controls playsinline muted preload="none" poster="assets/images/pc-cup-insertion.jpg" aria-label="Point cloud visualization, cup insertion"><source src="assets/videos/pc-cup-insertion.mp4" type="video/mp4">Your browser does not support embedded video. Use the recording link below.</video>
+            <p>A workspace-aligned, filtered point cloud. Global 3D structure from three RGB-D cameras.</p>
+            <a class="recording-link" href="assets/videos/pc-cup-insertion.mp4">Open recording <span aria-hidden="true">↗</span></a>
+          </article>
+          <article class="modality featured" data-mode="pc-rgb">
+            <div class="modality-heading"><h3>PC+RGB</h3><span>Global + local</span></div>
+            <video controls playsinline muted preload="none" poster="assets/images/pc-rgb-cup-insertion.jpg" aria-label="Point cloud plus wrist RGB visualization, cup insertion"><source src="assets/videos/pc-rgb-cup-insertion.mp4" type="video/mp4">Your browser does not support embedded video. Use the recording link below.</video>
+            <p>The same 3D point cloud, complemented by a wrist-camera image near the virtual end-effector.</p>
+            <a class="recording-link" href="assets/videos/pc-rgb-cup-insertion.mp4">Open recording <span aria-hidden="true">↗</span></a>
+          </article>
+          <article class="modality" data-mode="ot">
+            <div class="modality-heading"><h3>OT</h3><span>OpenTeleVision</span></div>
+            <video controls playsinline muted preload="none" poster="assets/images/ot-cup-insertion.jpg" aria-label="OpenTeleVision stereo visualization, cup insertion"><source src="assets/videos/ot-cup-insertion.mp4" type="video/mp4">Your browser does not support embedded video. Use the recording link below.</video>
+            <p>Ego-centric stereo video. An immersive camera view from the follower’s perspective.</p>
+            <a class="recording-link" href="assets/videos/ot-cup-insertion.mp4">Open recording <span aria-hidden="true">↗</span></a>
+          </article>
+        </div>
+        <p id="playback-status" class="sr-only" role="status" aria-live="polite"></p>
+        <p class="recording-note">These are individual demonstration recordings, not matched trials or study averages. “Play all” restarts the four clips together; their durations differ. Immersive views are projected into 2D, so visible distortion does not reflect the headset experience. Source recordings are compressed and presented without audio.</p>
+        <noscript><p>JavaScript enables task switching. <a href="recordings.html">Browse all 12 recordings here.</a></p></noscript>
+      </div>
+    </section>
+
+    <section id="system" class="system wrap section-space" aria-labelledby="system-title">
+      <div class="section-heading"><div><p class="eyebrow section-index">03 / BEHIND THE VIEW</p><h2 id="system-title">From the workspace<br><em>to the headset.</em></h2></div><p>Built on IRIS. Extended for contact-rich manipulation.</p></div>
+      <div class="system-grid">
+        <figure class="setup-figure"><img src="assets/images/teleoperation-setup.webp" alt="Experimental setup: an operator wearing a Meta Quest 3 guides the leader Franka Panda; the follower robot works behind a curtain, observed by three static cameras and a wrist camera." loading="lazy" width="1800" height="1351"><figcaption>The physical leader–follower setup used in the study.</figcaption></figure>
+        <ol class="pipeline">
+          <li><span class="step-number">01</span><div><h3>Capture &amp; fuse</h3><p>Three calibrated RGB-D cameras contribute geometry to one workspace-aligned point cloud.</p></div></li>
+          <li><span class="step-number">02</span><div><h3>Focus on what matters</h3><p>Semantic filtering removes redundant robot and background geometry, reserving the point budget for the task.</p></div></li>
+          <li><span class="step-number">03</span><div><h3>Add local detail</h3><p>A wrist-mounted RGB view supplies fine visual information close to the virtual end-effector.</p></div></li>
+          <li><span class="step-number">04</span><div><h3>Render in XR</h3><p>GPU-accelerated rendering on Meta Quest 3 combines the point cloud, robot meshes, and wrist view.</p></div></li>
+        </ol>
+      </div>
+      <div class="system-footnote"><span>Meta Quest 3</span><span>Intel RealSense</span><span>Franka Panda</span><span>Unity</span><span>Polymetis</span></div>
+    </section>
+
+    <section id="results" class="results section-space" aria-labelledby="results-title">
+      <div class="wrap">
+        <div class="section-heading"><div><p class="eyebrow section-index">04 / WHAT WE FOUND</p><h2 id="results-title">Better together.</h2></div><p>31 participants. A controlled within-subject study.<br>Four modalities, three manipulation tasks.</p></div>
+        <div class="results-grid">
+          <div class="finding"><span class="result-label">PC + RGB</span><p class="big-number">44.13<span>s</span></p><p class="finding-description">Lowest overall mean<br>failure-penalized completion time.</p><div class="secondary-finding"><strong>97.31<span>%</span></strong><p>Highest observed<br>overall success rate.</p></div></div>
+          <div class="chart">
+            <h3>Overall mean completion time <span>Lower is better ↓</span></h3>
+            <div class="bar-row best"><span>PC+RGB</span><div class="bar-track"><div class="bar" style="--bar-width:55.16%"></div></div><strong>44.13 s</strong></div>
+            <div class="bar-row"><span>PC</span><div class="bar-track"><div class="bar" style="--bar-width:64.58%"></div></div><strong>51.66 s</strong></div>
+            <div class="bar-row"><span>OT</span><div class="bar-track"><div class="bar" style="--bar-width:70.68%"></div></div><strong>56.54 s</strong></div>
+            <div class="bar-row"><span>RGBs</span><div class="bar-track"><div class="bar" style="--bar-width:87.83%"></div></div><strong>70.26 s</strong></div>
+            <div class="chart-axis" aria-hidden="true"><span>0</span><span>40</span><span>80 s</span></div>
+            <p class="chart-note">Main-study means across all three tasks. Failed trials were assigned the 120 s task limit before participant-level aggregation. Bars begin at zero; uncertainty is not shown.</p>
+          </div>
+        </div>
+        <div class="takeaway"><span aria-hidden="true">↳</span><p>In this leader–follower setup, <strong>global 3D structure and local RGB detail complement each other.</strong> The findings concern the tested system, tasks, and control interface.</p></div>
+      </div>
+    </section>
+
+    <section id="resources" class="resources wrap section-space" aria-labelledby="resources-title">
+      <p class="eyebrow section-index">05 / TAKE A CLOSER LOOK</p>
+      <div class="resource-grid">
+        <div><h2 id="resources-title">Explore.<br><em>Build on it.</em></h2><p>Code, recordings, and implementation notes<br>for the research community.</p><div class="resource-links"><a href="https://github.com/EnesUlasDincer/What-Should-the-Operator-See">Source code <span aria-hidden="true">↗</span></a><a href="https://github.com/EnesUlasDincer/What-Should-the-Operator-See/blob/main/Documentation/documentation.md">Documentation <span aria-hidden="true">↗</span></a><a href="recordings.html">All 12 recordings <span aria-hidden="true">↗</span></a><a href="assets/papers/supplementary-material.pdf">Supplementary material <span aria-hidden="true">↗</span></a><a href="https://arxiv.org/abs/2604.03730">Earlier arXiv preprint <span aria-hidden="true">↗</span></a></div><p class="preprint-note">The earlier preprint uses the title “A Multi-View 3D Telepresence System for XR Robot Teleoperation.” The accepted paper uses the title above.</p></div>
+        <div class="citation-box"><div class="citation-heading"><h3>Citation</h3><button type="button" id="copy-citation">Copy BibTeX <span aria-hidden="true">⧉</span></button></div><pre><code id="citation">@article{dincer2026operator,
+  title = {What Should the Operator See?
+    Evaluating Visualization Modalities
+    for XR Robot Teleoperation},
+  author = {Dincer, Enes Ulas and
+    Zaremski, Manuel and Nick, Alexandra and
+    Wucher, Elias and Deml, Barbara and
+    Neumann, Gerhard},
+  journal = {IEEE Robotics and Automation Letters},
+  year = {2026},
+  note = {Accepted for publication}
+}</code></pre><p class="citation-note">Publication details will be updated when the final record is available.</p><p id="copy-status" class="sr-only" role="status" aria-live="polite"></p></div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer wrap"><a class="wordmark" href="#"><span class="mark" aria-hidden="true">◧</span> OPERATOR / VIEW</a><p>Karlsruhe Institute of Technology · IEEE RA-L</p><a href="https://enesulasdincer.github.io/">Enes Ulas Dincer <span aria-hidden="true">↗</span></a></footer>
+</body>
+</html>
