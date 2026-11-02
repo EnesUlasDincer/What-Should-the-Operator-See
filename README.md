@@ -47,7 +47,7 @@ The [interactive comparison](https://enesulasdincer.github.io/What-Should-the-Op
 | T-shape assembly | [MP4](docs/assets/videos/rgbs-t-shape-assembly.mp4) | [MP4](docs/assets/videos/pc-t-shape-assembly.mp4) | [MP4](docs/assets/videos/pc-rgb-t-shape-assembly.mp4) | [MP4](docs/assets/videos/ot-t-shape-assembly.mp4) |
 | Wire-loop | [MP4](docs/assets/videos/rgbs-wire-loop.mp4) | [MP4](docs/assets/videos/pc-wire-loop.mp4) | [MP4](docs/assets/videos/pc-rgb-wire-loop.mp4) | [MP4](docs/assets/videos/ot-wire-loop.mp4) |
 
-These are individual demonstrations, not matched trials or study averages. Immersive VR recordings are projected into 2D and can appear distorted. Videos are compressed and presented without audio. “Play all” restarts the clips together; it does not align events between recordings.
+These are individual demonstrations, not matched trials or study averages. Immersive VR recordings are projected into 2D and can appear distorted. Videos retain the original compressed video and audio streams and start muted in the comparison player. “Play all” restarts the clips together; it does not align events between recordings.
 
 ## Main-study findings
 
